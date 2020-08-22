@@ -1,0 +1,23 @@
+{
+   "background": {
+      "persistent": false,
+      "scripts": [ "background.js" ]
+   },
+   "browser_action": {
+      "title": "Twitch.tv 투표 & 추첨"
+   },
+   "description": "Twitch.tv 투표 & 추첨 프로그램",
+   "icons": {
+      "128": "icons/128.png",
+      "32": "icons/32.png",
+      "48": "icons/48.png"
+   },
+   "incognito": "split",
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyhh6qchLC0tdbtcmlXIjG9zPKT0TA+Kh3gwDNyIcSZpuwQtc1lTDgfbX6G5gzPZhhc8PtDZ0Wm+5jgTccAz9umwbxKzLeFNI9MfQdVmlC8b+5Daon82oHGX5tx9UOxQGN6iJpyEF9YkXG+pIxJNKsemGOpbWvc+FX6+i4CVP2zPAdxOdtUyrXehzjVY3APE6x/YuXyy+cX/plbOdDxGDpTGZ7gLvffRIk9se9fGG7To3vcyD0Er7rrEbIfOh9fqQdCtHjR9h8gQi670DDYZTiej5pNCasUSNorfIBNzzRVA34t9wz/A4clAcp7Ew9XS6j8W9J3JJIpA/ake/RpQFYwIDAQAB",
+   "manifest_version": 2,
+   "name": "트위치 투표 추첨기",
+   "permissions": [ "*://*.twitch.tv/*", "storage", "tts" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "3.1.1",
+   "web_accessible_resources": [ "app.html", "access_token.html", "auth.html", "auth_fail.html" ]
+}

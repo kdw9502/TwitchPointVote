@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<!-- <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic:400,700|Nanum+Myeongjo:700|Nanum+Pen+Script&amp;subset=korean" rel="stylesheet"> -->
+	<link rel="stylesheet" type="text/css" href="css/app.css">
+	<link rel="stylesheet" type="text/css" href="css/roll.css">
+	<link rel="stylesheet" type="text/css" href="fontello/css/fontello.css">
+	<title>트위치 투표 추첨</title>
+</head>
+<body>
+	<div id="app">
+		<div id="main" class="modal-container">
+			<div class="content">
+				<div id="right-panel">
+					<div id="nav">
+						<button id="goto-home" class="button-icon-with-tooltip" data-tooltip="메인"><i class="icon-home"></i></button>
+						<span class="current-tab on-simple-mode">간편 추첨</span>
+						<span class="current-tab on-number-mode">숫자 투표</span>
+					</div>
+					<div id="tab-content-view">
+						<div class="tab-content active" id="select-mode">
+							<button id="goto-simple-mode" class="light"><i class="icon-gift"></i>간편 추첨</button>
+							<button id="goto-number-mode" class="light"><i class="icon-sort-numeric-outline"></i>숫자 투표</button>
+							<div class="tutorial">
+								<section>
+									<h3>간편 추첨</h3>
+									<p>채팅에 참여하는 모든 시청자를 대상으로 추첨합니다.</p>
+								</section>
+								<section>
+									<h3>숫자 투표</h3>
+									<p>채팅을 통해 투표를 진행합니다.</p>
+									<p>특정 선택지를 고른 시청자들을 대상으로 추첨할 수 있습니다.</p>
+									<p>시청자 참여방법: 채팅창에 <span class="emphasis">!투표 (숫자)</span></p>
+								</section>
+								<section>
+									<p>※ 트위치 채팅 서버는 동시에 받아들일 수 있는 채팅의 숫자가 한정되어 있기 때문에, 수백명 이상의 시청자가 동시에 참여하는 경우 일시적으로 채팅창이 폭주하여 일부 채팅이 누락될 수 있습니다.</p>
+								</section>
+							</div>
+						</div>
+						<div class="tab-content" id="simple-mode">
+							<div class="vote-toolbar">
+								<button class="start-vote">시작</button>
+								<button class="stop-vote">마감</button>
+								<div class="shutter"></div>
+							</div>
+							<div class="hide-on-closed">
+								<p>&nbsp;</p>
+								<p><i class="icon-twitch"></i> 채팅창에 아무 말이나 입력하면 자동으로 참여됩니다.</p>
+							</div>
+							<div class="show-on-closed">
+							</div>
+						</div>
+						<div class="tab-content" id="number-mode">
+							<div class="vote-toolbar">
+								<button class="start-vote">시작</button>
+								<button class="stop-vote">마감</button>
+								<!-- <label class="toggle"><span>선택 변경 금지</span><input type="checkbox" id="disallow-change"><span class="toggle-slider"></span></label> -->
+								<label class="toggle"><span>득표 현황 숨기기 / 보이기</span><input type="checkbox" id="show-result-numbers" checked="true"><span class="toggle-slider"></span></label>
+								<div class="shutter"></div>
+							</div>
+							<div class="vote-list-wrap">
+								<div class="header">
+									<button class="save-vote button-icon-with-tooltip" data-tooltip="양식저장"><i class="icon-download"></i></button>
+									<button class="load-vote button-icon-with-tooltip" data-tooltip="불러오기"><i class="icon-upload"></i></button>
+									<button class="restore-vote button-icon-with-tooltip" data-tooltip="최근투표"><i class="icon-basket"></i></button>
+									<button class="clear-vote button-icon-with-tooltip" data-tooltip="모두삭제"><i class="icon-trash"></i></button>
+									<div class="vote-total" title="총 참여자"></div>
+								</div>
+								<ul class="vote-setting">
+									<li class="vote-item">
+										<input type="text" placeholder="새 항목 추가" spellcheck="false" />
+										<div class="graph-wrap"><div class="graph"></div></div>
+										<div class="percent"></div>
+										<div class="votes"></div>
+										<button class="delete"><i class="icon-cancel"></i></button>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div id="footer"></div>
+				</div>
+				<div id="left-panel">
+					<div id="user-panel">
+						<ul class="user-list"></ul>
+						<div class="show-all-users-button">모든 시청자 표시</div>
+					</div>
+					<div id="counter">
+						<div id="counter-content"></div>
+					</div>
+					<div id="roll-panel">
+						<div id="roll-options">
+							<label class="toggle"><span>구독자만</span><input type="checkbox" id="subscriber-only" /><span class="toggle-slider"></span></label>
+						</div>
+						<button id="roll">추첨</button>
+					</div>
+				</div>
+			</div>
+			<div id="top-panel">
+				<div id="current-channel">
+					<img class="profile" draggable="false" src="https://static-cdn.jtvnw.net/emoticons/v1/112290/2.0" />
+					<span class="twitch-name">트위치 투표</span>
+				</div>
+				<!-- <div id="menu-button"><i class="icon-cog"></i></div> -->
+			</div>
+			<div id="roll-result" class="">
+				<div class="roll-result-modal">
+					<div class="roll-result-inner">
+						<div class="header">
+							<div class="winner-nick-wrap">
+								<div class="winner-nick"></div>
+							</div>
+							<div class="winner-id-wrap">
+								<div class="winner-id"></div>
+							</div>
+							<div class="winner-desc">
+								<div class="winner-subscribe is-subscriber"></div>
+								<div class="winner-follow is-follower"></div>
+								<div class="winner-clock" title="당첨 후 경과시간" data-minutes="0" data-seconds="00"></div>
+							</div>
+							<!-- <div class="winner-send-message" title="트위치 메시지"><a target="_blank" href="https://www.twitch.tv/message/compose?to="><i class="icon-mail"></i></a></div> -->
+							<div class="close-button"></div>
+							<div class="menu-wrap">
+								<div class="menu-button"><i class="icon-menu"></i></div>
+								<div class="menu">
+									<!-- <a class="send-message-button" target="_blank">메시지 보내기</a> -->
+									<div class="copy-nick-button click-to-copy">닉네임 복사</div>
+									<div class="copy-id-button click-to-copy">ID 복사</div>
+									<div class="copy-nick-id-button click-to-copy">닉네임 + ID 복사</div>
+								</div>
+							</div>
+						</div>
+						<div class="content">
+							<ul class="winner-chat">
+								<li class="conversation">
+									<div class="profile"></div>
+									<div class="text"></div>
+									<span class="timestamp">0:00</span>
+								</li>
+							</ul>
+							<div class="on-empty-tooltip"></div>
+							<div class="tts-button active" title="채팅을 읽어줍니다"></div>
+						</div>
+					</div>
+				</div>
+				<style id="winner-profile-style" type="text/css"></style>
+			</div>
+			<div id="ajax-loading">
+				<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>
+			</div>
+			<div class="toast-reconnecting">현재 채팅 서버와의 연결이 불안정합니다 (재접속 시도 중...)</div>
+			<div id="toast-container"></div>
+		</div>
+		<div id="chat"></div>
+		<div id="app-loading">
+			<div class="spinner">
+				<div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div>
+			</div>
+			<div class="delayed-info">
+				<p>트위치 채팅 서버와의 연결이 지연되고 있습니다</p>
+				<p>오래 기다려도 나오지 않으면 새로고침(F5) 해보세요</p>
+			</div>
+		</div>
+	</div>
+	<div id="contextmenu">
+		<ul>
+			<li id="copy-nick" data-nick=""></li>
+			<li id="copy-id" data-id=""></li>
+			<li id="give" data-id=""></li>
+		</ul>
+	</div>
+	<svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="filters">
+		<defs>
+			<filter id="blur">
+				<feGaussianBlur id="blur-filter" in="SourceGraphic" stdDeviation="0,0" />
+			</filter>
+		</defs>
+	</svg>
+	<style id="subscriber-icon-style" type="text/css"></style>
+	<script type="text/javascript" src="lib/jquery-3.2.0.min.js"></script>
+	<script type="text/javascript" src="js/dialog.js"></script>
+	<script type="text/javascript" src="js/chat.js"></script>
+	<script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
