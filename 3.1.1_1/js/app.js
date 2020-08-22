@@ -305,6 +305,8 @@ class User {
 		this.badges = {};
 		this.id = '';
 		this._ignore = false;
+
+		this.count = 1;
 	}
 	setFromChat(m) {
 		this.name = m.name;
@@ -353,7 +355,13 @@ class User {
 		if (this.color)
 			element.style.color = this.color;
 
-		element.textContent = this.displayName;
+
+
+		if (this.count >=2){
+			element.textContent = this.displayName + "\t" + this.count;
+		} else{
+			element.textContent = this.displayName;
+		}
 
 		this.element = element;
 		return element;
@@ -364,6 +372,7 @@ class User {
 		if (parent) {
 			delete parent.pool[this.name];
 		}
+		
 		this.parentPool = null;
 	}
 	select(votePool) {
@@ -371,14 +380,12 @@ class User {
 		votePool.pool[this.name] = this;
 		this.parentPool = votePool;
 	}
-	multiSelect(multiVotePool){
-		if (multiVotePool[this.name] != null){
-			multiVotePool[this.name] = 1;
-		}
+	multiSelect(votePool){
+		if (votePool != this.parentPool)
+			this.select(votePool);
 		else{
-			multiVotePool[this.name] = multiVotePool[this.name] + 1;
-		}		
-			
+		    this.count += 1;
+		}
 	}
 };
 
@@ -473,7 +480,8 @@ class ChatProcessor {
 			var pool = options[e].pool;
 			var keys = Object.keys(pool);
 			for (let i = 0; i < keys.length; i++) {
-				users.push(pool[keys[i]]);
+				var user = pool[keys[i]];				
+				users.push(user);
 			}
 		});
 		UserList.set(users);
@@ -745,7 +753,7 @@ class NumberModeCP extends ChatProcessor {
 			.find('input').focus();
 	}
 	process(user, message) {
-		var match = /^!(?:투표|vote) *(\d+) *$/.exec(message);
+		var match = /^!(?:투표|vote) *(\d+) *.*$/.exec(message);
 		if (!match) {
 			return;
 		}
@@ -784,7 +792,7 @@ class NumberModeCP extends ChatProcessor {
 			$(document.body).addClass('voting');
 			$('ul.vote-setting').addClass('result').html(NumberModeCP.getVoteItemHtml(list.length))
 				.find('li.vote-item').removeAttr('draggable')
-				.find('input').prop('readonly', true).each((i, e) => {  console.log(list[i]); e.value = list[i]; });
+				.find('input').prop('readonly', true).each((i, e) => { e.value = list[i]; });
 			if ($('#show-result-numbers').is(':checked')) {
 				$('ul.vote-setting').removeClass('hide-numbers');
 			} else {
@@ -857,11 +865,27 @@ class HighlightModeCP extends NumberModeCP
 		if(m.tags["msg-id"] != "highlighted-message"){
 			return;
 		}
-		super.onParsed(m);
+		var ban = app.settings.ban;
+		if (ban && ban.length && ban.some(e => e == m.name)) {
+			return;
+		}
+		var user = this.users[m.name];
+		if (!user && this.voting) {
+			user = this.users[m.name] = new User().setFromChat(m);
+			user.buildElement();
+		}
+		if (user) {
+			// user.lastChat = m.message;
+			user.lastChat = m.messageWithEmoticon;
+			user.lastTime = +new Date();
+			if (this.voting) {
+				this.process(user, m.message);
+			}
+		}
 	}
 
 	process(user, message) {
-		var match = /^!(?:투표|vote) *(\d+) *$/.exec(message);
+		var match = /^!(?:투표|vote) *(\d+) *.*$/.exec(message);
 		if (!match) {
 			return;
 		}
@@ -878,8 +902,33 @@ class HighlightModeCP extends NumberModeCP
 		if (this.selectedOption.some(e => e == curVote - 1)) {
 			UserList.add(user);
 		}
-		
-		super.updateResult();
+
+		user.buildElement();
+		this.updateResult();
+	}
+
+	updateResult() {
+		var lists = $('ul.vote-setting.result li');
+
+
+		var counts = this.options.map(e => Object.values(e.pool).reduce((a,b) => a + b.count,0));
+		var sum = 0;
+		if (counts.length) {
+			sum = counts.reduce((p, e) => e + p);
+		}
+		counts.forEach((e, i) => {
+			var width = sum ? (bezier.eval(e / sum) * 100.0).toFixed(1) : '0';
+			var percent = sum ? (e / sum * 100.0).toFixed(1) : '0';
+			lists.eq(i)
+				.find('.graph').css('width', width + '%' ).end()
+				.find('.percent').attr('data-percent', percent).end()
+				.find('.votes').attr('data-votes', e).end()
+		});
+		if (sum) {
+			$('.vote-total').attr('data-total', sum);
+		} else {
+			$('.vote-total').removeAttr('data-total');
+		}
 	}
 
 	close(){
