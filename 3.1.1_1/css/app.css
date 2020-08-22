@@ -195,6 +195,7 @@ button.light:hover i {
 }
 
 button#goto-simple-mode,
+button#goto-highlight-mode,
 button#goto-number-mode {
 	display: block;
 	width: calc(100% - 24px);
@@ -622,6 +623,7 @@ button#goto-home:hover {
 }
 
 .simple-mode.closed button#goto-home,
+.highlight-mode.closed button#goto-home,
 .number-mode.closed button#goto-home {
 	animation: shake-home-button .4s ease-out;
 }
@@ -686,11 +688,13 @@ div#nav>button {
 	vertical-align: middle;
 }
 div#nav .on-simple-mode,
-div#nav .on-number-mode {
+div#nav .on-number-mode,
+div#nav .on-highlight-mode {
 	display: none;
 }
 .simple-mode div#nav .on-simple-mode,
-.number-mode div#nav .on-number-mode {
+.number-mode div#nav .on-number-mode,
+.highlight-mode div#nav .on-highlight-mode {
 	display: inline-block;
 	vertical-align: middle;
 	line-height: 36px;

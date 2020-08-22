@@ -125,7 +125,7 @@ var bezier = new CubicBezier([.08,.61,.59,.38]);
 
 
 
-const Mode = Object.freeze({ None: 0, Simple: 1, Number: 2 });
+const Mode = Object.freeze({ None: 0, Simple: 1, Number: 2, Highlight: 3 });
 
 var Colors = new class {
 	constructor() {
@@ -371,6 +371,15 @@ class User {
 		votePool.pool[this.name] = this;
 		this.parentPool = votePool;
 	}
+	multiSelect(multiVotePool){
+		if (multiVotePool[this.name] != null){
+			multiVotePool[this.name] = 1;
+		}
+		else{
+			multiVotePool[this.name] = multiVotePool[this.name] + 1;
+		}		
+			
+	}
 };
 
 class VotePool {
@@ -471,17 +480,23 @@ class ChatProcessor {
 
 		return this;
 	}
+	initTab(){
+
+	}
 };
 
 class NullCP extends ChatProcessor {
 	constructor(c) {
 		super(c);
-		$(document.body).removeClass('simple-mode number-mode');
+		$(document.body).removeClass('simple-mode number-mode highlight-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#select-mode').addClass('active');
 	}
 	onParsed() {}
 	start() {}
+	initTab(){
+		
+	}
 };
 
 class SimpleModeCP extends ChatProcessor {
@@ -489,7 +504,7 @@ class SimpleModeCP extends ChatProcessor {
 		super(c);
 		this.createVoteOptions(['simple']);
 		this.select([0]);
-		$(document.body).removeClass('number-mode').addClass('simple-mode');
+		$(document.body).removeClass('number-mode').removeClass('highlight-mode').addClass('simple-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#simple-mode').addClass('active');
 	}
@@ -508,10 +523,13 @@ class NumberModeCP extends ChatProcessor {
 		super(c);
 		this.flagAllowChange = true;
 
-		$(document.body).removeClass('simple-mode').addClass('number-mode');
+		$(document.body).removeClass('simple-mode').removeClass('highlight-mode').addClass('number-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#number-mode').addClass('active');
 
+		this.setCallbacks();
+	}
+	setCallbacks(){		
 		var self = this;
 		$('ul.vote-setting').on('click.numbermode', 'li.vote-item', e => {
 			if (!$(e.delegateTarget).hasClass('result')) {
@@ -649,7 +667,6 @@ class NumberModeCP extends ChatProcessor {
 			$('li.vote-item').removeClass('dragging dragging-placeholder');
 			return false;
 		});
-
 	}
 	get allowChange() {
 		return !!this.flagAllowChange;
@@ -767,7 +784,7 @@ class NumberModeCP extends ChatProcessor {
 			$(document.body).addClass('voting');
 			$('ul.vote-setting').addClass('result').html(NumberModeCP.getVoteItemHtml(list.length))
 				.find('li.vote-item').removeAttr('draggable')
-				.find('input').prop('readonly', true).each((i, e) => { e.value = list[i]; });
+				.find('input').prop('readonly', true).each((i, e) => {  console.log(list[i]); e.value = list[i]; });
 			if ($('#show-result-numbers').is(':checked')) {
 				$('ul.vote-setting').removeClass('hide-numbers');
 			} else {
@@ -827,6 +844,49 @@ class NumberModeCP extends ChatProcessor {
 		super.close();
 	}
 };
+
+class HighlightModeCP extends NumberModeCP
+{
+	constructor(c)
+	{
+		super(c);
+		$('span.on-number-mode').text("강조 메세지 투표");
+	}
+
+	onParsed(m) {
+		if(m.tags["msg-id"] != "highlighted-message"){
+			return;
+		}
+		super.onParsed(m);
+	}
+
+	process(user, message) {
+		var match = /^!(?:투표|vote) *(\d+) *$/.exec(message);
+		if (!match) {
+			return;
+		}
+		var curVote = parseInt(match[1]);
+		var len = this.options.length;
+
+		if (len <= 0 || 0 >= curVote || curVote > len) {
+			 return;
+		}
+
+		var pool = this.options[curVote - 1];
+		user.multiSelect(pool);
+		
+		if (this.selectedOption.some(e => e == curVote - 1)) {
+			UserList.add(user);
+		}
+		
+		super.updateResult();
+	}
+
+	close(){
+		$('span.on-number-mode').text("숫자 투표");
+		super.close();
+	}
+}
 
 ;(function() {
 
@@ -1154,6 +1214,7 @@ class App {
 		.on('click.app', '#goto-home', e => self.changeMode(Mode.None))
 		.on('click.app', '#goto-simple-mode', e => self.changeMode(Mode.Simple))
 		.on('click.app', '#goto-number-mode', e => self.changeMode(Mode.Number))
+		.on('click.app', '#goto-highlight-mode', e => self.changeMode(Mode.Highlight))
 		.on('click.app', '.start-vote:not(.disabled)', e => self.startVote())
 		.on('click.app', '.stop-vote:not(.disabled)', e => self.pauseVote())
 		.on('click.app', 'ul.user-list .user[data-username]', e => {
@@ -1328,6 +1389,9 @@ class App {
 				break;
 			case Mode.Number:
 				this.cpEngine = new NumberModeCP(this.chatClient);
+				break;
+			case Mode.Highlight:
+				this.cpEngine = new HighlightModeCP(this.chatClient);
 				break;
 			case Mode.None:
 			default:
