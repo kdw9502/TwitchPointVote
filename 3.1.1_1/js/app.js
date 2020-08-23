@@ -366,6 +366,20 @@ class User {
 		this.element = element;
 		return element;
 	}
+	updateElement(){
+		if (this.element != null)
+		{
+			if (this.count >=2){
+				this.element.textContent = this.displayName + "\t" + this.count;
+			} else{
+				this.element.textContent = this.displayName;
+			}
+		}
+		else
+		{
+			this.buildElement();
+		}
+	}
 	unselect() {
 		UserList.remove(this);
 		var parent = this.parentPool;
@@ -496,7 +510,7 @@ class ChatProcessor {
 class NullCP extends ChatProcessor {
 	constructor(c) {
 		super(c);
-		$(document.body).removeClass('simple-mode number-mode highlight-mode');
+		$(document.body).removeClass('simple-mode number-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#select-mode').addClass('active');
 	}
@@ -512,7 +526,7 @@ class SimpleModeCP extends ChatProcessor {
 		super(c);
 		this.createVoteOptions(['simple']);
 		this.select([0]);
-		$(document.body).removeClass('number-mode').removeClass('highlight-mode').addClass('simple-mode');
+		$(document.body).removeClass('number-mode').addClass('simple-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#simple-mode').addClass('active');
 	}
@@ -531,7 +545,7 @@ class NumberModeCP extends ChatProcessor {
 		super(c);
 		this.flagAllowChange = true;
 
-		$(document.body).removeClass('simple-mode').removeClass('highlight-mode').addClass('number-mode');
+		$(document.body).removeClass('simple-mode').addClass('number-mode');
 		$('.tab-content').removeClass('active')
 		.filter('#number-mode').addClass('active');
 
@@ -718,8 +732,7 @@ class NumberModeCP extends ChatProcessor {
 			};
 			reader.readAsText(e.currentTarget.files[0])
 			return false;
-		}).click();
-		console.log('hi');
+		}).click();		
 	}
 	downloadVotes() {
 		var txt = $('ul.vote-setting input').toArray().map(e => e.value).filter(e => e).join('\r\n');
@@ -903,7 +916,7 @@ class HighlightModeCP extends NumberModeCP
 			UserList.add(user);
 		}
 
-		user.buildElement();
+		user.updateElement();
 		this.updateResult();
 	}
 
